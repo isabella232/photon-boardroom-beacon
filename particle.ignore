@@ -1,2 +1,6 @@
 # particle.ignore
 .ds_store
+*.png
+*.jpg
+*.md
+.idea
