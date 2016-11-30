@@ -39,8 +39,8 @@ void debug(String message, int value) {
 // mosquitto_pub -h 192.168.2.115 -p 8883 -t 'homeassistant/boardroomBeacon/biggie/slot/1' -u pi -P welcome -m 'biggeeeee'
 // mosquitto_pub -h 192.168.2.115 -p 8883 -t 'home-assistant/test' -u pi -P welcome -m 'BAm'
 void callback(char* topic, byte* payload, unsigned int length);
-byte server[] = { 10,0,1,39 };
-//byte server[] = { 192,168,2,115 };
+/*byte server[] = { 10,0,1,39 };*/
+byte server[] = { 192,168,2,115 };
 int port = 8883;
 String usr = "pi";
 String pwd = "welcome";
