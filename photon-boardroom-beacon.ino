@@ -14,6 +14,18 @@ boolean slot2HasRecievedMessage = false;
 boolean slot3HasRecievedMessage = false;
 boolean isConnected = false;
 
+int pirStatusLed = D7;
+int pirInputPin = D6;
+int prevPirState = LOW;             // we start, assuming no motion detected
+int currentPirState = 0;            // variable for reading the pin status
+int calibrateTime = 10000;      // wait for the pir sensor to calibrate
+
+// Generally, you should use "unsigned long" for variables that hold time
+// The value will quickly become too large for an int to store
+unsigned long previousMillis = 0;        // will store last time LED was updated
+unsigned long lastMotionMillis = 0;        // will store last time LED was updated
+const long interval = 5000;           // interval at which to blink (milliseconds)
+
 // Log message to cloud, message is a printf-formatted string
 void debug(String message, int value) {
     char msg [50];
@@ -27,7 +39,8 @@ void debug(String message, int value) {
 // mosquitto_pub -h 192.168.2.115 -p 8883 -t 'homeassistant/boardroomBeacon/biggie/slot/1' -u pi -P welcome -m 'biggeeeee'
 // mosquitto_pub -h 192.168.2.115 -p 8883 -t 'home-assistant/test' -u pi -P welcome -m 'BAm'
 void callback(char* topic, byte* payload, unsigned int length);
-byte server[] = { 192,168,2,115 };
+byte server[] = { 10,0,1,39 };
+//byte server[] = { 192,168,2,115 };
 int port = 8883;
 String usr = "pi";
 String pwd = "welcome";
@@ -55,11 +68,22 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if(top.endsWith("0")){
     /*Serial.println('ENDS WITH 0!!!');*/
     slot1HasRecievedMessage = true;
-    setStatus(led1, message);
+    slot1Satus = message;
+    if(message == "free" && prevPirState == HIGH){
+      Serial.println("illegal!");
+      slot1Satus = "illegal";
+      setStatus(led1, "illegal");
+    } else {
+      Serial.println("callback - ok!");
+      Serial.println("free");
+      setStatus(led1, message);
+    }
   } else if (top.endsWith("1")){
+    slot2Satus = message;
     slot2HasRecievedMessage = true;
     setStatus(led2, message);
   } else if (top.endsWith("2")){
+    slot3Satus = message;
     slot3HasRecievedMessage = true;
     setStatus(led3, message);
   } else {
@@ -92,7 +116,7 @@ void setup() {
     Serial.begin(9600);
 
     /*RGB.control(true);*/
-    pinMode(testLed, OUTPUT);
+    //pinMode(testLed, OUTPUT);
 
     // Set up our pins for output
     pinMode( led1[0], OUTPUT);
@@ -123,6 +147,9 @@ void setup() {
     // add qos callback. If don't add qoscallback, ACK message from MQTT server is ignored.
     client.addQosCallback(qoscallback);
 
+    pinMode( pirStatusLed, OUTPUT );
+    pinMode( pirInputPin, INPUT);     // declare sensor as input
+    digitalWrite( pirStatusLed, prevPirState );
 }
 
 void connect() {
@@ -154,11 +181,19 @@ void waiting(int* led){
 
 void loop() {
 
+  // if the pir sensor is calibrated
+  if ( pirCalibrated() ) {
+  // get the data from the sensor
+    readTheSensor();
+    // report it out, if the state has changed
+    reportTheData();
+  }
+
   if (!client.isConnected()) {
-    digitalWrite(testLed, LOW);
+    //digitalWrite(testLed, LOW);
     connect();
   } else {
-    digitalWrite(testLed, HIGH);
+    //digitalWrite(testLed, HIGH);
     if(!slot1HasRecievedMessage){
       waiting(led1);
     }
@@ -171,6 +206,7 @@ void loop() {
   }
   // Loop the MQTT client.
   client.loop();
+
 }
 
 // LED Logic
@@ -191,8 +227,8 @@ int setStatus(int* led, String status){
     blue = LOW;
     Serial.println('booked');
   } else if (status == "illegal") {
-    red = 150;
-    green = 150;
+    red = HIGH;
+    green = HIGH;
     blue = LOW;
     Serial.println('illegal');
   } else if (status == "error") {
@@ -220,4 +256,57 @@ int setStatus(int* led, String status){
   digitalWrite( led[2], blue);
   /*debug("status = %d", status);*/
   return 1;
+}
+
+void readTheSensor() {
+  currentPirState = digitalRead(pirInputPin);
+}
+
+bool pirCalibrated() {
+  return millis() - calibrateTime > 0;
+}
+
+void reportTheData() {
+
+  // if the sensor reads high
+  // or there is now motion
+  if (currentPirState == HIGH) {
+    lastMotionMillis = millis();
+    // the current state is no motion
+    // i.e. it's just changed
+    // announce this change by publishing an eent
+    //Serial.println("motion!");
+    if (prevPirState == LOW) {
+      // we have just turned on
+      //Particle.publish("designingiot/s15/motion");
+      // Update the current state
+      if(slot1Satus == "free"){
+        Serial.println("motion - free set to illegal!");
+        /*slot1Satus = "illegal";*/
+        setStatus(led1, "illegal");
+        slot1Satus = "illegal";
+      }
+      prevPirState = HIGH;
+      setLED( prevPirState );
+    }
+  } else {
+    //Serial.println("...");
+    if (prevPirState == HIGH) {
+      // we have just turned off
+      // Update the current state
+      if(slot1Satus == "illegal"){
+        /*slot1Satus = "free";*/
+        setStatus(led1, "free");
+        slot1Satus = "free";
+      }
+      prevPirState = LOW;
+      setLED( prevPirState );
+    }
+  }
+}
+
+void setLED( int state ) {
+  Serial.println("setLed");
+  Serial.println(state);
+  digitalWrite( pirStatusLed, state );
 }
