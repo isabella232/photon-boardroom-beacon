@@ -82,11 +82,13 @@ allow_anonymous true
 ###Run Mosquitto
 OSX:
 `/usr/local/sbin/mosquitto -c /usr/local/etc/mosquitto/mosquitto.conf`
+
 Brew Background Service(OSX):
 `brew services start mosquitto`
 
 Linux:
 `sudo mosquitto -v -c /etc/mosquitto/mosquitto.conf`
+
 Background Service (Linux):
 `sudo service mosquitto start`
 
