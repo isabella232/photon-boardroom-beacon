@@ -107,11 +107,9 @@ The second LED should turn green.
 If you move around infront of the motion sensor the first LED should turn yellow.
 
 
-
-`mosquitto_sub -h 10.0.1.39 -p 8883 -v -t 'homeassistant/boardroomBeacon/biggie/slot/0'`
-
-`mosquitto_pub -h 10.0.1.39 -p 8883 -t 'homeassistant/boardroomBeacon/biggie/slot/0' -m 'free'`
-
-`mosquitto_sub -h 192.168.2.115 -p 8883 -v -t 'homeassistant/boardroomBeacon/biggie/slot/0' -u "pi" -P "welcome"`
-`mosquitto_pub -h 192.168.2.115 -p 8883 -t 'homeassistant/boardroomBeacon/biggie/slot/0' -u "pi" -P "welcome" -m 'booked'`
- -h 192.168.2.115 -u "pi" -P "welcome"
+####Subscribe
+`mosquitto_sub -h 192.168.2.115 -p 8883 -v -t 'homeassistant/boardroomBeacon/biggie/slot/0'`
+####Publish
+`mosquitto_pub -h 192.168.2.115 -p 8883 -t 'homeassistant/boardroomBeacon/biggie/slot/0' -m 'free'`
+####Publish wt Credentials
+`mosquitto_pub -h 192.168.2.115 -p 8883 -t 'homeassistant/boardroomBeacon/biggie/slot/0' -u "<user>" -P "<password>" -m 'booked'`
