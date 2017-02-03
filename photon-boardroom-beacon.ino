@@ -3,9 +3,10 @@
 
 boolean test = true;
 int testLed = D7;
-int led1[] = {D2, D1, D0}; //rgb
+int led1[] = {D0, D1, D2}; //rgb
 int led2[] = {D3, D4, D5};
 int led3[] = {A0, A1, A2};
+// int led3[] = {A2, A1, A0};
 String slot1Satus = "";
 String slot2Satus = "";
 String slot3Satus = "";
@@ -66,7 +67,6 @@ void callback(char* topic, byte* payload, unsigned int length) {
   top.trim();
 
   if(top.endsWith("0")){
-    /*Serial.println('ENDS WITH 0!!!');*/
     slot1HasRecievedMessage = true;
     slot1Satus = message;
     if(message == "free" && prevPirState == HIGH){
@@ -227,10 +227,12 @@ int setStatus(int* led, String status){
     blue = LOW;
     Serial.println('booked');
   } else if (status == "illegal") {
+    Serial.println("setting to illegal");
+    // yellow = Red + green
     red = HIGH;
     green = HIGH;
     blue = LOW;
-    Serial.println('illegal');
+    Serial.println("illegal");
   } else if (status == "error") {
     red = HIGH;
     green = HIGH;
@@ -267,22 +269,21 @@ bool pirCalibrated() {
 }
 
 void reportTheData() {
-
+  //Serial.println(currentPirState);
   // if the sensor reads high
   // or there is now motion
   if (currentPirState == HIGH) {
+    Serial.println("hiiiiii");
     lastMotionMillis = millis();
     // the current state is no motion
     // i.e. it's just changed
     // announce this change by publishing an eent
-    //Serial.println("motion!");
     if (prevPirState == LOW) {
       // we have just turned on
       //Particle.publish("designingiot/s15/motion");
       // Update the current state
       if(slot1Satus == "free"){
         Serial.println("motion - free set to illegal!");
-        /*slot1Satus = "illegal";*/
         setStatus(led1, "illegal");
         slot1Satus = "illegal";
       }
@@ -295,7 +296,6 @@ void reportTheData() {
       // we have just turned off
       // Update the current state
       if(slot1Satus == "illegal"){
-        /*slot1Satus = "free";*/
         setStatus(led1, "free");
         slot1Satus = "free";
       }
@@ -307,6 +307,5 @@ void reportTheData() {
 
 void setLED( int state ) {
   Serial.println("setLed");
-  Serial.println(state);
   digitalWrite( pirStatusLed, state );
 }
