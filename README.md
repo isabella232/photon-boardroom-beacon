@@ -62,7 +62,7 @@ Linux: `/etc/mosquitto/mosquitto.conf`
 Add the following lines to the very end with your ip & port:
 ```
 # Mosquittoo server IP & port
-#listener 8883 192.168.1.63
+listener 8883 192.168.2.115
 persistence true
 persistence_location /var/lib/mosquitto/
 persistence_file mosquitto.db
@@ -93,12 +93,16 @@ Background Service (Linux):
 ###Publish and Subscribe
 You may need to install `mosquitto_sub` & `mosquitto_pub` with Pip3
 If you want to verify that Mosquitto is running properly and messages are being sent, you can use `mosquitto_sub`.
+
 `mosquitto_sub -h <your-ip> -p 8883 -v -t 'homeassistant/boardroomBeacon/biggie/slot/0' -u <user> -P <password>`
+
 Omit the user and password if you are not using a `pwfile` file.
 
 Each LED subscribes to its own `slot` topic, `/slot/0`, `/slot/1` or `/slot/2`.
-Publish to the status (booked, free, illegal) to the "biggie" boardroom: 
+Publish to the status (booked, free, illegal) to the "biggie" boardroom:
+
 `mosquitto_pub -h <your-ip> -p 8883 -t 'homeassistant/boardroomBeacon/biggie/slot/0' -m 'booked'`
+
 The first LED should turn red.
 
 `mosquitto_pub -h <your-ip> -p 8883 -t 'homeassistant/boardroomBeacon/biggie/slot/1' -m 'free'`
